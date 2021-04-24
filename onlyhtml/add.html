@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>Insert title here</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">  
+	<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+	<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="util.js"></script>
+<style type="text/css">
+div{
+	border-radius:5px;
+	background-color:#f2f2f2;
+	paddig:20px;
+}
+
+input[type=text],input[type=file],input[type=date]{
+	width: 100%;
+	padding: 12px 20px;
+	margin: 8px 0;
+	display: inline-block;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+input[type=button]{
+	width: 100%;
+	background-color: grey;
+	color: white;
+	padding: 14px 20px;
+	margin: 8px 0;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+</style>
+
+<script type="text/javascript">
+
+var flda=$("#flda").val();
+var fldb=$("#fldb").val();
+var fldc=$("#fldc").val();
+var flag=[false,false,false];
+
+function changeBtn(){
+	
+	for(var i=0;i<flag.length;i++){
+		if(!flag[i] ) {
+			$("#btn").prop("disabled",true);
+			$("#btn").css("background-color","grey");
+			return;
+		}
+	}
+	$("#btn").prop("disabled",false);
+	$("#btn").css("background-color","#4CAF50");
+}
+
+$(function(){
+	$("#flda").keyup(function(){
+		flda=$(this).val();
+		if(flda.length==0 || flda.indexOf(".")!=-1 ||  isNaN(flda) || flda<1 || flda>9999){
+			$("#ats").html("请输入有效数字[1,9999]");
+			flag[0]=false;
+			changeBtn();
+			return;
+		}
+		$.ajax({
+			//type:'post',
+			url:PROXY.webcontext+"/fld/check/"+flda,	
+			success:function(res){			
+				if(res.indexOf("exist")!=-1){
+					$("#ats").html("已被占用");
+					flag[0]=false;
+					changeBtn();
+					return;
+				}
+			}
+		})	
+		flag[0]=true;
+		$("#ats").html("*");
+		changeBtn();
+	});
+	
+	$("#btn").click(function(){
+		var picFile=$("#picFile").val();
+		if(picFile.length==0) {
+			$("#tpts").html("请选择文件");
+			return;
+		}
+		
+		var formData = new FormData($("#frma")[0]);
+		
+		$.ajax({
+			type:'post',
+		 	url:PROXY.webcontext+"/fld/insert",
+			data: formData,	
+            contentType: false,
+            processData: false,
+			success:function(res){	
+				console.log(res)
+				$("#dts").html(res);
+		        if(res.indexOf("success")!=-1){  	
+		        	if (!confirm("继续增加吗?")) {
+		        		window.location.href="showByJs.html";
+					}else{
+						flag[0]=false;
+			        	changeBtn();
+					}		        	
+		        	
+		        }			
+			}
+		})
+	});
+	
+	$("#fldb").keyup(function(){
+		fldb=$(this).val();
+		if(fldb.length==0){
+			$("#bts").html("不能为空");
+			flag[1]=false;
+			changeBtn();
+			return;
+		}
+		flag[1]=true;
+		$("#bts").html("*");
+		changeBtn();
+	});
+	
+	$("#fldc").keyup(function(){
+		fldc=$(this).val();
+		if(fldc.length==0 || isNaN(fldc) ){
+			$("#cts").html("请输入有效数字");
+			flag[2]=false;
+			changeBtn();
+			return;
+		}
+		flag[2]=true;
+		$("#cts").html("*");
+		changeBtn();
+	});
+	
+	
+	
+	
+});
+</script>
+</head>
+<body>
+<div>
+<form method="post" enctype="multipart/form-data" id="frma"> 
+
+
+<label for="flda">flda</label> &nbsp;&nbsp;&nbsp;<font id="ats" color="red"></font> <br/>
+<input id="flda"  name="flda" placeholder="数字。。。" type="text"> <br/>
+<label for="fldb">fldb</label> &nbsp;&nbsp;&nbsp;<font id="bts" color="red"></font> <br/>
+<input id="fldb"  name="fldb" type="text"><br/>
+<label for="fldc">fldc</label> &nbsp;&nbsp;&nbsp;<font id="cts" color="red"></font> <br/>
+<input id="fldc"  name="fldc" type="text"><br/>
+<label for="fldd">fldd</label> &nbsp;&nbsp;&nbsp;<font id="dts" color="red"></font> <br/>
+<input id="fldd"  name="fldd" type="date"><br/>
+
+<label for="pic">PicFile</label> &nbsp;&nbsp;&nbsp;<font id="tpts" color="red"></font> <br/>
+<input id="picFile"   name="picFile" type="file"><br/>
+<input id="btn" value="add" type="button" disabled="disabled">
+</form>
+<h1 id="abc"></h1>
+</div>
+</body>
+</html>
